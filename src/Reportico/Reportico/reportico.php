@@ -502,7 +502,7 @@ class reportico extends reportico_object
 	var $bootstrap_styles = "3";
 	var $jquery_preloaded = false;
 	var $bootstrap_preloaded = false;
-	var $bootstrap_styling_page = "table table-striped table-condensed";
+	var $bootstrap_styling_page = "table table-condensed";
 	var $bootstrap_styling_button_go = "btn btn-success";
 	var $bootstrap_styling_button_reset = "btn btn-default";
 	var $bootstrap_styling_button_admin = "btn";
@@ -5022,11 +5022,11 @@ $code = "namespace Reportico\Reportico;". $code;
     // Function : create_hyperlink 
     // Generates a link object against a column
 	// -----------------------------------------------------------------------------
-	function embed_hyperlink($column_assignee, $label, $url, $open_in_new = true, $is_drilldown = false)
-	{
-            get_query_column($column_assignee, $this->columns )->output_hyperlinks = 
-                        array("label" => $label, "url" => $url, "open_in_new" => $open_in_new, "is_drilldown" => $is_drilldown);
-	}
+    function embed_hyperlink($column_assignee, $label, $url, $open_in_new = true, $is_drilldown = false)
+    {
+        get_query_column($column_assignee, $this->columns )->output_hyperlinks =
+            array("label" => $label, "url" => $this->base_url() . $url, "open_in_new" => $open_in_new, "is_drilldown" => $is_drilldown);
+    }
 
 	// -----------------------------------------------------------------------------
 	// Function : apply_style 
@@ -5083,6 +5083,32 @@ $code = "namespace Reportico\Reportico;". $code;
 			$result = $this->query_count;
 		return($result);
 	}
+
+    // -----------------------------------------------------------------------------
+    // Function : base_url
+    // -----------------------------------------------------------------------------
+    function base_url($atRoot=FALSE, $atCore=FALSE, $parse=FALSE){
+        if (isset($_SERVER['HTTP_HOST'])) {
+            $http = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' ? 'https' : 'http';
+            $hostname = $_SERVER['HTTP_HOST'];
+            $dir =  str_replace(basename($_SERVER['SCRIPT_NAME']), '', $_SERVER['SCRIPT_NAME']);
+
+            $core = preg_split('@/@', str_replace($_SERVER['DOCUMENT_ROOT'], '', realpath(dirname(__FILE__))), NULL, PREG_SPLIT_NO_EMPTY);
+            $core = $core[0];
+
+            $tmplt = $atRoot ? ($atCore ? "%s://%s/%s/" : "%s://%s/") : ($atCore ? "%s://%s/%s/" : "%s://%s%s");
+            $end = $atRoot ? ($atCore ? $core : $hostname) : ($atCore ? $core : $dir);
+            $base_url = sprintf( $tmplt, $http, $hostname, $end );
+        }
+        else $base_url = 'http://localhost/';
+
+        if ($parse) {
+            $base_url = parse_url($base_url);
+            if (isset($base_url['path'])) if ($base_url['path'] == '/') $base_url['path'] = '';
+        }
+
+        return $base_url;
+    }
 
 	// -----------------------------------------------------------------------------
 	// Function : sum
